@@ -1,0 +1,3 @@
+rootProject.name = 'gradle-experiment'
+include 'client'                    // list of subproject file paths
+

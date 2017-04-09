@@ -1,0 +1,74 @@
+description = "An experiment on gradle"
+
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.4.1'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+}
+
+// the extra property projectIds declared in the root project is available to the subprojects
+ext.projectIds = [
+        'group'  : 'io.boonheng',
+        'version': '1.0.0-SNAPSHOT'
+]
+
+allprojects {
+    group = projectIds.group
+    version = projectIds.version
+
+    apply plugin: 'idea'
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'org.hidetake.ssh'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+//    apply plugin: 'contacts'
+//    contacts 'minnie@disney.com'
+
+}
+
+// project(':web') {
+//   dependencies {
+//     compile project(':model')
+//   }
+// }
+
+
+buildscript {
+    repositories {
+//        jcenter()
+//
+//        maven {
+//            url "https://plugins.gradle.org/m2/"
+//        }
+        maven {
+            url 'http://192.168.8.2/artifactory/gradle-all'
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
+    }
+    dependencies {
+
+        //Check for the latest version here: http://plugins.gradle.org/plugin/com.jfrog.artifactory
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+
+//        classpath "com.netflix.nebula:nebula-release-plugin:latest.release"
+        classpath "com.netflix.nebula:nebula-docker-plugin:latest.release"
+        classpath 'com.netflix.nebula:gradle-netflixoss-project-plugin:3.5.2'
+
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:latest.release"
+
+        classpath "com.moowork.gradle:gradle-node-plugin:1.1.1"
+        classpath 'org.hidetake:gradle-ssh-plugin:2.8.0'
+
+        classpath "gradle.plugin.com.github.ksoichiro:gradle-build-info-plugin:0.2.0"
+    }
+}
+
