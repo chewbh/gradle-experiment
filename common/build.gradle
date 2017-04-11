@@ -1,0 +1,30 @@
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+dependencies {
+
+  compile "org.springframework.boot:spring-boot-starter"
+  compile "org.springframework.boot:spring-boot-starter-actuator"
+
+  testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+//task testShadowJar(type: shadowJar) {
+//  classifier = 'tests'
+//  from sourceSets.test.output
+//  configurations = [project.configurations.testRuntime]
+//}
+
+
+buildscript {
+
+  repositories {
+    maven { url 'http://192.168.8.2/artifactory/gradle-all' }
+  }
+
+  dependencies {
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+  }
+}
+
+bootRepackage.enabled = false
