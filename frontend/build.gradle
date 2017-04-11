@@ -4,27 +4,39 @@ version '1.0.0'
 apply plugin: 'com.moowork.node'
 
 node {
-  // Version of node to use.
-  version = '6.10.2'
-
+  version = '6.10.2'      // version of node to use.
   distBaseUrl = 'https://nodejs.org/dist'
   download = true
-
-  //  yarnVersion
 
   nodeModulesDir = file("${project.projectDir}")
 }
 
-task clean {
-  delete 'build'
-}
+task clean { delete "$buildDir" }
 
-task build(type: NpmTask) {
+task npmBuild(type: NpmTask) {
   group = 'npm'
   args = ['run', 'build']
+
+  mustRunAfter 'npm_install'
+  mustRunAfter 'clean'
 }
-build.dependsOn(npm_install)
-build.dependsOn(clean)
+//npmBuild.dependsOn(npm_install)
+//npmBuild.dependsOn(clean)
+
+task yarnBuild(type: YarnTask) {
+  group = 'yarn'
+  args = ['run', 'build']
+
+  mustRunAfter 'yarn'
+  mustRunAfter 'clean'
+}
+//yarnBuild.dependsOn(yarn)
+//npmBuild.dependsOn(clean)
+
+task build {}
+boolean useYarn = true
+if (useYarn) build.dependsOn(yarnBuild)
+else build.dependsOn(npmBuild)
 
 
 task start(type: NpmTask) {
@@ -36,12 +48,16 @@ task start(type: NpmTask) {
   execOverrides {
     it.ignoreExitValue = true
   }
+
+  mustRunAfter 'npm_install'
 }
 start.dependsOn(npm_install)
 //npm_install.dependsOn(npm_cache_clean)
 
+//task nodeScript(type: NodeTask) {
+////  script = file('src/scripts/my.js')
+////  options = ['--node-option', '--another-node-option']
+//}
 
-task nodeScript(type: NodeTask) {
-//  script = file('src/scripts/my.js')
-//  options = ['--node-option', '--another-node-option']
-}
+
+
