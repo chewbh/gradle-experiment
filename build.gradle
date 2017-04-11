@@ -10,7 +10,7 @@ task wrapper(type: Wrapper) {
 // the extra property projectIds declared in the root project is available to the subprojects
 ext.projectIds = [
   'group'  : 'io.boonheng',
-  'version': '1.0.0-SNAPSHOT'
+  'version': '1.0.0'
 ]
 
 allprojects {
@@ -24,34 +24,23 @@ allprojects {
   }
 }
 
-subprojects {
+configure(subprojects - project(':frontend')) {
+//  println "applying java plugin to $project"
   apply plugin: 'java'
   apply plugin: 'spring-boot'
-//    apply plugin: 'org.hidetake.ssh'
 
   sourceCompatibility = 1.8
   targetCompatibility = 1.8
 
-//    apply plugin: 'contacts'
-//    contacts 'minnie@disney.com'
-
-//  processResources {
-//    filesMatching('application.properties') {
-//      filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
-//        "version"     : version,   // project.property("application.version")
-//        "timestamp"   : 'versioning.info.full',
-//        activeProfiles: project.getProperties().containsKey('activeProfiles') ? project.property('activeProfiles') : ''
-//      ])
-//    }
-//  }
+  // Configure the test task to run tests in parallel
+  test.maxParallelForks = getMaxParallels()
 }
 
-// project(':web') {
-//   dependencies {
-//     compile project(':model')
-//   }
-// }
-
+Integer getMaxParallels() {
+  println "actual core is ${Runtime.runtime.availableProcessors()}"
+  int max_cores = Runtime.runtime.availableProcessors()
+  if (max_cores - 1 <= 1) max_cores else max_cores - 1
+}
 
 buildscript {
 
@@ -60,31 +49,17 @@ buildscript {
   }
 
   repositories {
-    maven {
-      url 'http://192.168.8.2/artifactory/gradle-all'
-//            credentials {
-//                username = "${artifactory_user}"
-//                password = "${artifactory_password}"
-//            }
-    }
+    maven { url 'http://192.168.8.2/artifactory/gradle-all' }
   }
   dependencies {
 
-    //Check for the latest version here: http://plugins.gradle.org/plugin/com.jfrog.artifactory
     classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
-//        classpath "com.netflix.nebula:nebula-release-plugin:latest.release"
-    classpath "com.netflix.nebula:nebula-docker-plugin:latest.release"
-    classpath 'com.netflix.nebula:gradle-netflixoss-project-plugin:3.5.2'
-
-    classpath "com.moowork.gradle:gradle-node-plugin:1.1.1"
-    classpath 'org.hidetake:gradle-ssh-plugin:2.8.0'
-
-    classpath "gradle.plugin.com.github.ksoichiro:gradle-build-info-plugin:0.2.0"
 
     classpath "io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE"
     classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
 
-    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+    classpath "com.moowork.gradle:gradle-node-plugin:1.1.1"
+
   }
 }
 
