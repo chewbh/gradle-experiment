@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HelloService {
 
-  @RequestMapping("/")
+  @RequestMapping("/hello")
   public String index() {
     return "Greetings from Spring Boot with Gradle!";
   }
