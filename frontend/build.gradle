@@ -1,0 +1,47 @@
+group 'io.boonheng'
+version '1.0.0'
+
+apply plugin: 'com.moowork.node'
+
+node {
+  // Version of node to use.
+  version = '6.10.2'
+
+  distBaseUrl = 'https://nodejs.org/dist'
+  download = true
+
+  //  yarnVersion
+
+  nodeModulesDir = file("${project.projectDir}")
+}
+
+task clean {
+  delete 'build'
+}
+
+task build(type: NpmTask) {
+  group = 'npm'
+  args = ['run', 'build']
+}
+build.dependsOn(npm_install)
+build.dependsOn(clean)
+
+
+task start(type: NpmTask) {
+  group = 'npm'
+  description = "Runs the app in the development mode. Under the hood, run npm start"
+//  workingDir = file("${project.projectDir}/src/main/frontend")
+  args = ['start']
+
+  execOverrides {
+    it.ignoreExitValue = true
+  }
+}
+start.dependsOn(npm_install)
+//npm_install.dependsOn(npm_cache_clean)
+
+
+task nodeScript(type: NodeTask) {
+//  script = file('src/scripts/my.js')
+//  options = ['--node-option', '--another-node-option']
+}
