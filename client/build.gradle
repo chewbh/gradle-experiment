@@ -1,51 +1,42 @@
 apply plugin: 'war'
-apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'com.moowork.node'
 
-war {
-  baseName = "client-web"
-}
 
-shadowJar {
-  baseName = 'shadow'
-  classifier = 'merged'
-//  version = null
-}
-
-configurations {
-  providedRuntime
-}
+configurations { providedRuntime }
 
 dependencies {
   compile project(path: ':common', configuration: 'shadow')
-//  compile project(':common') // { transitive = false }
-
-//  compile "ch.qos.logback:logback-classic:1.1.+" // should be providedCompile
-  compile "com.google.guava:guava:20.0"
-  compile "com.bluejeans.common:bigqueue:1.+"
-//  compile "org.slf4j:slf4j-api:1.7.5"
-//  compile "org.slf4j:slf4j-simple:1.6.4"
-//  compile 'org.apache.kafka:kafka-clients:0.10.2.0'
-//  compile "org.apache.kafka:kafka_2.11:0.9.0.0"
-
-  testCompile 'junit:junit:4.12'
-  // testCompile group: 'junit', name: 'junit', version: '4.12'
-
-
   compile("org.springframework.boot:spring-boot-starter-web") {
     exclude module: "spring-boot-starter-jetty"
-//    exclude module: "org.springframework.boot:spring-boot-starter-logging"
-//    exclude module: "org.springframework.boot:spring-boot-starter-log4j"
   }
   providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
+  compile "com.google.guava:guava:20.0"
+  compile "com.bluejeans.common:bigqueue:1.+" // providedCompile
 
-//    testCompile "org.springframework.boot:spring-boot-starter-test"
+  testCompile "junit:junit:4.12"
+  testCompile "org.springframework.boot:spring-boot-starter-test"
 }
+
+war.enabled = false
+task mergeSPAWar(type: War) {
+  baseName = "client-web"
+  appendix = "merged"
+
+  manifest.attributes "BH-Implementation-Version": project.version, strategy: 'build'
+
+  from("${project(':frontend').buildDir}") {
+    include '**/*'
+    into 'public'
+  }
+}
+mergeSPAWar.dependsOn(':frontend:build')
 
 bootRepackage {
   mainClass = 'io.boonheng.Main'
-//  withJarTask = shadowJar
-//  executable = true                 // jar files are fully executable on Unix like operating systems
-//  excludeDevtools = true            // indicate if the devtools jar should be excluded from the repackaged archives
+  withJarTask mergeSPAWar
+
+  //  executable = true                 // jar files are fully executable on Unix like operating systems
+  //  excludeDevtools = true            // indicate if the devtools jar should be excluded from the repackaged archives
 
   /**
    * The embedded launch script to prepend to the front of the jar if it is fully executable.
@@ -60,112 +51,10 @@ bootRepackage {
   // embeddedLaunchScriptProperties = ''
 }
 
-// configuring existing jar task in java plugin
-// jar.manifest.attributes "Implementation-Version": project.version      - another way to add entry to manifest
-// put and set map attributes([ key:value, key:value ])   -> [] can be ignored
-//jar {//    baseName = 'file'
-//    version = '0.1.0'
+//war {
+//  baseName = "client-web"
 //  manifest.attributes "Implementation-Version": project.version, strategy: 'build'
-//}// Configure the test task to run tests in parallel
-test.maxParallelForks = getMaxParallels()
+//}
 
-Integer getMaxParallels() {
-  println "actual core is ${Runtime.runtime.availableProcessors()}"
-  Integer max_cores = Runtime.runtime.availableProcessors()
-  if (max_cores - 1 <= 1) max_cores else max_cores - 1
-}
 
-task helloWorld {
-  description = 'prints hello world'
-  group = 'hello'
-  // println 'hello world'   --> will always run at execution (if they are not in action)
-  // -> become run at configuration time
 
-  doLast { println 'hello world' }
-}
-
-task date {
-  dependsOn helloWorld
-  println 'date configuration block'  // run everytime since at configuration block
-  doLast { println new Date() }
-}
-
-task copyDeps(type: Copy) {
-  from configurations.compile
-  into "$buildDir/deps"
-}/** unmanaged dependencies
- dependencies {compile fileTree(dir: "lib", include: "*.jar")}**/
-
-/**
- dependencies {compile.transitive= false
-
- compile "com.spring-framework", {exclude module: "spring-core"}compile("org.springframework:spring-core:4.0.5.RELEASE"), {force = true}// tell gradle to fail when hit version conflicit instead of get higher version, use above to force
- compile.resolutionStrategy.failOnVersionConflict()}// all is special ==> means all configurations
- configurations {all {resolutionStrategy.failOnVersionConflict()}}**/
-
-// dynamic dependencies
-// dependencies {
-//   compile "org.company:some-lib:2.+"            // can use ivy symbolic version
-//   compile "org.company:some-lib:latest.release" // comp metadata
-// } // ttl => 24 hr
-
-// changing dependencies
-// dependencies {
-//   compile "org.company:some-lib:1.0", {
-//     changing = true
-//   }
-//   compile "org.company:some-lib:1.0-SNAPSHOT"
-// }
-
-/**
- configurations.all {resolutionStrategy.cacheChangingModulesFor 4, "hours"
- resolutionStrategy.cacheDynamicVersionsFor 10, "minutes"}#> -- offline               (ignore ttl)
- #> --refresh-dependencies   (look for update regardless of ttl)
- ** /
-
- /*
- > gradle dependencies [--configuration <<name>>]
- > gradle dependencyInsight --dependency <<name>> [--configuration <<name>>]
- */
-// gradle dependency management => source location aware
-// default gradle cache => ~/.gradle/caches/
-// component metadata rules -> use for get latest beta, etc
-
-// repositories
-/**
- repositories {jcenter()             // order is important for the repo url ( will search by the org)
- mavenCentral()
- mavenLocal()
-
- maven {name "xxx"          // just a name for reference
- url ""}ivy {url "repo.xxx.org"
- layout "gradle"}flatDir(dirs: ["dir1", "dir2"])
-
- // can also download zip files}**/
-
-// migration from maven
-def getMavenSettingsCredentials = {
-  String userHome = System.getProperty('user.home')
-  File mavenSettings = new File(userHome, '.m2/settings.xml')
-  XmlSlurper xmlSluperer = new XmlSlurper()
-  xmlSluperer.parse(mavenSettings)
-}
-
-// gradle printAppServerHome -Penv=test
-task printAppServerHome {
-
-  doLast {
-    def env = project.hasProperty('env') ? project.getProperty('env') : 'dev'
-    logger.quiet "Using environment '$env'"
-    def settings = getMavenSettingsCredentials
-    def allProfiles = settings.profiles.profile
-    def profile = allProfiles.find {
-      it.activation.property.name == 'env' &&
-        it.activation.property.value == env
-    }
-    def appServerHome = profiles.properties.'appserver.home'
-    println "The $env server's home directory: $appServerHome"
-  }
-}
-
-// gradle build --refresh-dependencies
