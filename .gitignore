@@ -1,7 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### Gradle ###
 .gradle
-/build/
+build/
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -145,3 +145,7 @@ typings/
 
 # dotenv environment variables file
 .env
+
+
+# mac related
+.DS_Store
