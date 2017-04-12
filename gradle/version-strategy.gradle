@@ -1,0 +1,12 @@
+//plugins {
+//  id 'nebula.release' version '4.2.0'
+//}
+
+apply plugin: 'nebula.nebula-release'
+
+
+nebulaRelease {
+  excludeBranchPatterns = []
+}
+
+println "The current version is $version"
