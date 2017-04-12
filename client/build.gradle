@@ -4,8 +4,9 @@ apply plugin: 'com.moowork.node'
 
 configurations { providedRuntime }
 
+
 dependencies {
-  compile project(path: ':common', configuration: 'shadow')
+  compile project(path: ':common', configuration: 'compile')
   compile("org.springframework.boot:spring-boot-starter-web") {
     exclude module: "spring-boot-starter-jetty"
   }
